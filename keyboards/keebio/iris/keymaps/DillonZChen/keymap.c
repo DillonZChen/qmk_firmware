@@ -1,11 +1,12 @@
 #include QMK_KEYBOARD_H
 
 #define _QWERTY 0
-#define _LOWER 1
-#define _RAISE 2
-#define _ADJUST 3
+#define _LOWER0 1
+#define _LOWER1 2
+#define _RAISE 3
+#define _ADJUST 4
 
-// note that LCTL and CAPS are switched
+#define _LOWER_TAP_TIME 200
 
 enum custom_keycodes {
     /* layers */
@@ -13,10 +14,12 @@ enum custom_keycodes {
     LOWER,
     RAISE,
     ADJUST,
+
     /* macros */
+    UNDO,
+    REDO,
     TM_COPY,  // terminal copy
     TM_PSTE,  // terminal paste
-    CTR_ALT,  // hold control alt
     // snap windows
     WN_UP,
     WN_DOWN,
@@ -26,8 +29,12 @@ enum custom_keycodes {
     WS_UP,
     WS_DOWN,
     WS_LEFT,
-    WS_RGHT,
+    WS_RGHT, 
 };
+
+bool lower0_up = false;
+bool lower0_tapped = false;
+uint16_t lower_tap_timer = false;
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
@@ -45,15 +52,29 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                 // └────────┴────────┴────────┘                 └────────┴────────┴────────┘
   ),
 
-  [_LOWER] = LAYOUT(
+  [_LOWER0] = LAYOUT(
   //┌────────┬────────┬────────┬────────┬────────┬────────┐                          ┌────────┬────────┬────────┬────────┬────────┬────────┐
      KC_GRV,  KC_EXLM, KC_AT,   KC_HASH, KC_DLR,  KC_PERC,                            KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, _______,
   //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
-     _______, KC_PGUP, KC_EQL , KC_UP,   KC_PLUS, KC_MINS,                            KC_UNDS, _______, KC_LPRN, KC_RPRN, KC_PSCR, KC_PIPE,
+     KC_SPC,  KC_PGUP, KC_EQL , KC_UP,   KC_PLUS, KC_MINS,                            KC_UNDS, _______, KC_LPRN, KC_RPRN, KC_PSCR, KC_PIPE,
   //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
-     _______, KC_PGDN, KC_LEFT, KC_DOWN, KC_RGHT, _______,                            _______, _______, KC_LCBR, KC_RCBR, KC_COLN, KC_DQUO,
+     KC_BSPC, KC_PGDN, KC_LEFT, KC_DOWN, KC_RGHT, _______,                            _______, _______, KC_LCBR, KC_RCBR, KC_COLN, KC_DQUO,
   //├────────┼────────┼────────┼────────┼────────┼────────┼────────┐        ┌────────┼────────┼────────┼────────┼────────┼────────┼────────┤
-     _______, _______, _______, TM_COPY, TM_PSTE, _______, _______,          _______, _______, _______, KC_LABK, KC_RABK, KC_QUES, _______,
+     KC_DEL,  UNDO,    REDO,    TM_COPY, TM_PSTE, _______, _______,          _______, _______, _______, KC_LABK, KC_RABK, KC_QUES, _______,
+  //└────────┴────────┴────────┴───┬────┴───┬────┴───┬────┴───┬────┘        └───┬────┴───┬────┴───┬────┴───┬────┴────────┴────────┴────────┘
+                                    _______, _______, _______,                   _______, _______, _______
+                                // └────────┴────────┴────────┘                 └────────┴────────┴────────┘
+  ),
+
+  [_LOWER1] = LAYOUT(
+  //┌────────┬────────┬────────┬────────┬────────┬────────┐                          ┌────────┬────────┬────────┬────────┬────────┬────────┐
+     KC_F12,  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,                              _______, _______, _______, _______, _______, _______,
+  //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
+     KC_F11,  KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,                             _______, _______, _______, _______, _______, _______,
+  //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
+     _______, _______, _______, _______, _______, _______,                            _______, _______, _______, _______, _______, _______,
+  //├────────┼────────┼────────┼────────┼────────┼────────┼────────┐        ┌────────┼────────┼────────┼────────┼────────┼────────┼────────┤
+     _______, _______, _______, _______, _______, _______, _______,          _______, _______, _______, _______, _______, _______, _______,
   //└────────┴────────┴────────┴───┬────┴───┬────┴───┬────┴───┬────┘        └───┬────┴───┬────┴───┬────┴───┬────┴────────┴────────┴────────┘
                                     _______, _______, _______,                   _______, _______, _______
                                 // └────────┴────────┴────────┘                 └────────┴────────┴────────┘
@@ -69,7 +90,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //├────────┼────────┼────────┼────────┼────────┼────────┼────────┐        ┌────────┼────────┼────────┼────────┼────────┼────────┼────────┤
      _______, _______, _______, _______, _______, _______, _______,          _______, _______, _______, _______, _______, _______, _______,
   //└────────┴────────┴────────┴───┬────┴───┬────┴───┬────┴───┬────┘        └───┬────┴───┬────┴───┬────┴───┬────┴────────┴────────┴────────┘
-                                    KC_LALT, KC_SPC,  KC_BSPC,                   _______, _______, _______
+                                    _______, _______, _______,                   _______, _______, _______
                                 // └────────┴────────┴────────┘                 └────────┴────────┴────────┘
   ),
 
@@ -90,15 +111,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
-        case KC_ESC:
-            if (record->event.pressed) {
-                register_code(KC_ESC);
-                layer_on(_RAISE);
-                // do not update_tri_layer
-            } else {
-                unregister_code(KC_ESC);
-                layer_off(_RAISE);
-            }
+        /* layers*/
         case QWERTY:
             if (record->event.pressed) {
                 set_single_persistent_default_layer(_QWERTY);
@@ -106,20 +119,32 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             return false;
         case LOWER:
             if (record->event.pressed) {
-                layer_on(_LOWER);
-                update_tri_layer(_LOWER, _RAISE, _ADJUST);
+                if (!lower0_tapped) {
+                    layer_on(_LOWER0);
+                    update_tri_layer(_LOWER0, _RAISE, _ADJUST);
+                    lower0_up = true;
+                } else {
+                    layer_on(_LOWER1);
+                }
             } else {
-                layer_off(_LOWER);
-                update_tri_layer(_LOWER, _RAISE, _ADJUST);
+                if (lower0_up) {
+                    lower0_up = false;
+                    layer_off(_LOWER0);
+                    update_tri_layer(_LOWER0, _RAISE, _ADJUST);
+                    lower0_tapped = true;
+                    lower_tap_timer = timer_read();
+                } else {
+                    layer_off(_LOWER1);
+                }
             }
             return false;
         case RAISE:
             if (record->event.pressed) {
                 layer_on(_RAISE);
-                update_tri_layer(_LOWER, _RAISE, _ADJUST);
+                update_tri_layer(_LOWER0, _RAISE, _ADJUST);
             } else {
                 layer_off(_RAISE);
-                update_tri_layer(_LOWER, _RAISE, _ADJUST);
+                update_tri_layer(_LOWER0, _RAISE, _ADJUST);
             }
             return false;
         case ADJUST:
@@ -127,6 +152,44 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 layer_on(_ADJUST);
             } else {
                 layer_off(_ADJUST);
+            }
+            return false;
+        
+        /* macros */
+        case UNDO:
+            if (record->event.pressed) {
+                SEND_STRING(SS_LCTL(SS_TAP(X_Z)));
+            }
+            return false;
+        case REDO:
+            if (record->event.pressed) {
+                SEND_STRING(SS_LCTL(SS_LSFT(SS_TAP(X_Z))));
+            }
+            return false;
+        case TM_COPY:
+            // this does not work in terminal
+            // if (record->event.pressed) {
+            //     SEND_STRING(SS_LCTL(SS_LSFT("c")));
+            // }
+            if (record->event.pressed) {
+                register_code(KC_LCTL);
+                register_code(KC_LSFT);
+                register_code(KC_C);
+                unregister_code(KC_C);
+            } else {
+                unregister_code(KC_LSFT);
+                unregister_code(KC_LCTL);
+            }
+            return false;
+        case TM_PSTE:
+            if (record->event.pressed) {
+                register_code(KC_LCTL);
+                register_code(KC_LSFT);
+                register_code(KC_V);
+                unregister_code(KC_V);
+            } else {
+                unregister_code(KC_LSFT);
+                unregister_code(KC_LCTL);
             }
             return false;
         case WN_UP:
@@ -169,32 +232,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 SEND_STRING(SS_LCTL(SS_LALT(SS_TAP(X_RGHT))));
             }
             return false;
-        case TM_COPY:
-            // this does not work in terminal
-            // if (record->event.pressed) {
-            //     SEND_STRING(SS_LCTL(SS_LSFT("c")));
-            // }
-            if (record->event.pressed) {
-                register_code(KC_LCTL);
-                register_code(KC_LSFT);
-                register_code(KC_C);
-                unregister_code(KC_C);
-            } else {
-                unregister_code(KC_LSFT);
-                unregister_code(KC_LCTL);
-            }
-            return false;
-        case TM_PSTE:
-            if (record->event.pressed) {
-                register_code(KC_LCTL);
-                register_code(KC_LSFT);
-                register_code(KC_V);
-                unregister_code(KC_V);
-            } else {
-                unregister_code(KC_LSFT);
-                unregister_code(KC_LCTL);
-            }
-            return false;
     }
     return true;
+}
+
+void matrix_scan_user(void) { // The very important timer.
+  if (lower0_tapped) {
+    if (timer_elapsed(lower_tap_timer) > _LOWER_TAP_TIME) {
+      lower0_tapped = false;
+    }
+  }
 }
