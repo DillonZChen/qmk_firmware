@@ -1,6 +1,8 @@
-lime [here](https://github.com/DillonZChen/qmk_firmware/blob/master/keyboards/keebio/iris/keymaps/DillonZChen/keymap.c)
+My config [here](https://github.com/DillonZChen/qmk_firmware/blob/master/keyboards/keebio/iris/keymaps/DillonZChen/keymap.c)
 
-instructions
+Default config [here](https://github.com/DillonZChen/qmk_firmware/blob/master/keyboards/keebio/iris/keymaps/default/keymap.c)
+
+Instructions
 
     python3 -m pip install --user qmk
     echo 'PATH="$HOME/.local/bin:$PATH"' >> $HOME/.bashrc && source $HOME/.bashrc
