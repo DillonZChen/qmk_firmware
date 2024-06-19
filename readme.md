@@ -1,5 +1,15 @@
 lime [here](https://github.com/DillonZChen/qmk_firmware/blob/master/keyboards/keebio/iris/keymaps/DillonZChen/keymap.c)
 
+instructions
+
+    python3 -m pip install --user qmk
+    echo 'PATH="$HOME/.local/bin:$PATH"' >> $HOME/.bashrc && source $HOME/.bashrc
+    qmk setup DillonZChen/qmk_firmware
+    qmk config user.keyboard=keebio/iris/rev8
+    qmk config user.keymap=DillonZChen
+    qmk compile
+    qmk flash
+
 # Quantum Mechanical Keyboard Firmware
 
 [![Current Version](https://img.shields.io/github/tag/qmk/qmk_firmware.svg)](https://github.com/qmk/qmk_firmware/tags)
