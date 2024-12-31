@@ -20,6 +20,7 @@ enum custom_keycodes {
     REDO,
     TM_COPY,  // terminal copy
     TM_PSTE,  // terminal paste
+    ALT_TAB,
     // snap windows
     WN_UP,
     WN_DOWN,
@@ -84,7 +85,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //┌────────┬────────┬────────┬────────┬────────┬────────┐                          ┌────────┬────────┬────────┬────────┬────────┬────────┐
      _______, _______, _______, _______, _______, _______,                            _______, _______, _______, _______, _______, KC_DEL,
   //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
-     _______, KC_TAB , KC_SPC , WN_UP,   _______, _______,                            _______, _______, _______, _______, KC_PSCR, KC_BSLS,
+     ALT_TAB, _______, _______, WN_UP,   _______, _______,                            _______, _______, _______, _______, KC_PSCR, KC_BSLS,
   //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
      _______, _______, WN_LEFT, WN_DOWN, WN_RGHT, _______,                            _______, _______, KC_LBRC, KC_RBRC, _______, _______,
   //├────────┼────────┼────────┼────────┼────────┼────────┼────────┐        ┌────────┼────────┼────────┼────────┼────────┼────────┼────────┤
@@ -164,6 +165,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case REDO:
             if (record->event.pressed) {
                 SEND_STRING(SS_LCTL(SS_LSFT(SS_TAP(X_Z))));
+            }
+            return false;
+        case ALT_TAB:
+            if (record->event.pressed) {
+                SEND_STRING(SS_LALT(SS_TAP(X_TAB)));
             }
             return false;
         case TM_COPY:
